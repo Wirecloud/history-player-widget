@@ -1,0 +1,28 @@
+{
+  "name": "history-player",
+  "dependencies": {
+    "moment": "2.17.1",
+    "nvd3": "1.8.4"
+  },
+  "exportsOverride": {
+    "d3": {
+        "js": "d3.min.js"
+    },
+    "nvd3": {
+        "css": [
+            "build/nv.d3.css",
+            "build/nv.d3.min.css",
+            "build/nv.d3.min.css.map"
+        ],
+        "js": [
+            "build/nv.d3.js",
+            "build/nv.d3.min.js",
+            "build/nv.d3.min.js.map"
+        ]
+    },
+    "moment": {
+        "js": "min/moment-with-locales.min.js"
+    }
+  }
+
+}
