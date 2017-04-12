@@ -44,7 +44,6 @@
             // By the moment taking default params
             chart = nv.models.lineChart()
                 .useInteractiveGuideline(true)
-                .showLegend(false)
                 .showYAxis(false)
                 .interpolate("monotone")
                 .duration(250);
