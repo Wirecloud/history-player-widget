@@ -5,7 +5,7 @@
     <title>History Player</title>
     <authors>Álvaro Arranz &lt;aarranz@fi.upm.es&gt;</authors>
     <email>wirecloud@conwet.com</email>
-    <description>Chart that let you select a zone</description>
+    <description>Linear chart with step by step viewing features</description>
     <license>Apache License 2.0</license>
     <licenseurl>http://www.apache.org/licenses/LICENSE-2.0.html</licenseurl>
   </details>

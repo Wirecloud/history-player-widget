@@ -3,3 +3,8 @@ svg {
     width: 100%;
     height: 100%;
 }
+
+.history-current-value line {
+    stroke: rgb(241, 11, 11);
+    stroke-width: 2px;
+}

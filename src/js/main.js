@@ -1,4 +1,4 @@
-/* globals $, d3, nv */
+/* globals $, d3, moment, nv */
 
 (function () {
 
@@ -7,6 +7,27 @@
     var chart = null;
     var chartData = null;
     var initialData = [];
+
+    var resizeLines = function removeLines() {
+        d3.select(chart.container).selectAll(".history-current-value line")
+            .attr("y1", chart.interactiveLayer.height());
+    };
+
+    var removeLines = function removeLines() {
+        d3.select(chart.container).selectAll(".history-current-value").remove();
+    };
+
+    var renderLine = function renderLine(x) {
+        x = chart.xAxis.scale()(x);
+        var wrap = d3.select(chart.container).select(".nv-interactive g.nv-wrap.nv-interactiveLineLayer");
+        var group = wrap.append("g").attr("class", "history-current-value");
+        group
+            .append("line")
+            .attr("x1", x)
+            .attr("x2", x)
+            .attr("y1", chart.interactiveLayer.height())
+            .attr("y2", 0);
+    };
 
     var initChart = function initChart() {
 
@@ -22,47 +43,29 @@
             chart = nv.models.lineChart()
                 .useInteractiveGuideline(true)
                 .showLegend(false)
-                .interpolate("linear")
+                .showYAxis(false)
+                .interpolate("monotone")
                 .duration(250);
 
             chart.xAxis.tickFormat((d) => {
-                var dat = new Date(d);
-                return [dat.getFullYear(), dat.getMonth(), dat.getDate()].join('-');
+                return moment(d).format("L");
             });
+            chart.xScale(d3.time.scale());
 
-            chart.x2Axis.tickFormat((d) => {
-                var dat = new Date(d);
-                return [dat.getFullYear(), dat.getMonth(), dat.getDate()].join('-');
-            });
-
-            chart.yAxis.tickFormat((d) => {
-                // Truncate decimals
-                var pow =  Math.pow(10, 2);
-                d = Math.floor(d * pow) / pow;
-
-
-                if (d >= 1000 || d <= -1000) {
-                    return Math.abs(d / 1000) + " K";
-                } else {
-                    return Math.abs(d);
-                }
-            });
-
-            chart.y2Axis.tickFormat((d) => {
-                // Truncate decimals
-                var pow =  Math.pow(10, 2);
-                d = Math.floor(d * pow) / pow;
-
-
-                if (d >= 1000 || d <= -1000) {
-                    return Math.abs(d / 1000) + " K";
-                } else {
-                    return Math.abs(d);
-                }
+            // Tooltip
+            chart.interactiveLayer.tooltip.contentGenerator((d) => {
+                return "<h2>" + moment(d.value).format("llll") + "</h2>";
             });
 
             chartData = d3.select(svg).datum(initialData);
             chartData.transition().duration(500).call(chart);
+
+            // Event listeners
+            chart.lines.dispatch.on("elementClick", function (e) {
+                removeLines();
+                renderLine(e[0].point.x);
+                MashupPlatform.wiring.pushEvent("outputData", e[0].point.data);
+            });
 
             // Call update to update the chart and threfore the context
             chart.update();
@@ -71,8 +74,9 @@
         }.bind(this));
     };
 
-    var paint = function paint(data) {
+    var paint = function paint(data, min, max) {
         if (chartData != null) {
+            chart.forceX([min, max]);
             chartData.datum(data).transition().duration(500).call(chart);
         } else {
             initialData = data;
@@ -83,15 +87,13 @@
         if (typeof data == "string") {
             data = JSON.parse(data);
         } else {
-            data = Array.prototype.slice.call(data, 0);
+            data.series.forEach((serie) => {
+                serie.values = Array.prototype.slice.call(serie.values, 0);
+                serie.area = true;
+            });
         }
 
-        var normalized_data = [{
-            values: data,
-            area: true
-        }];
-
-        paint(normalized_data);
+        paint(data.series, data.min, data.max);
     };
 
 
@@ -102,12 +104,16 @@
         // On resize repaint
         MashupPlatform.widget.context.registerCallback(handleResize);
 
+        // Init moment locale
+        moment.locale(MashupPlatform.context.get('language'));
+
         initChart();
     };
 
     var handleResize = function handleResize(new_values) {
         if (chart != null && ('heightInPixels' in new_values || 'widthInPixels' in new_values)) {
             chart.update();
+            resizeLines();
         }
     };
 
