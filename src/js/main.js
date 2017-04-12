@@ -7,6 +7,8 @@
     var chart = null;
     var chartData = null;
     var initialData = [];
+    var initialMin = null;
+    var initialMax = null;
 
     var resizeLines = function removeLines() {
         d3.select(chart.container).selectAll(".history-current-value line")
@@ -80,6 +82,8 @@
             chartData.datum(data).transition().duration(500).call(chart);
         } else {
             initialData = data;
+            initialMin = min;
+            initialMax = max;
         }
     };
 
