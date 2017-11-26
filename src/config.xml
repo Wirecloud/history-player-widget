@@ -10,12 +10,16 @@
     <licenseurl>http://www.apache.org/licenses/LICENSE-2.0.html</licenseurl>
   </details>
 
-  <contents src="index.html" useplatformstyle="true"/>
-
-  <rendering width="15" height="40"/>
+  <requirements>
+      <feature name="StyledElements" />
+  </requirements>
 
   <wiring>
     <inputendpoint name="inputData" type="text" label="inputData" description="Receives the data it will show" />
     <outputendpoint name="outputData" type="text" label="outputData" description="Sends the data of the zone selected" />
   </wiring>
+
+  <contents src="index.html" useplatformstyle="true"/>
+  <rendering width="15" height="40"/>
+
 </widget>

@@ -8,3 +8,9 @@ svg {
     stroke: rgb(241, 11, 11);
     stroke-width: 2px;
 }
+
+.se-btn {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+}
