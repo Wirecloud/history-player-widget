@@ -14,6 +14,10 @@
       <feature name="StyledElements" />
   </requirements>
 
+  <preferences>
+      <preference name="keys" type="text" label="Attributes" description="Comma sparated list of attribute names to use for drawing historical data. Leave this empty to auto detect data to display" />
+  </preferences>
+
   <wiring>
     <inputendpoint name="inputData" type="text" label="inputData" description="Receives the data it will show" />
     <outputendpoint name="outputData" type="text" label="outputData" description="Sends the data of the zone selected" />

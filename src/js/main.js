@@ -4,6 +4,25 @@
 
     "use strict";
 
+    var DEFAULT_HISTROY_KEYS = [
+        "temperature",
+        "relativeHumidity",
+        "SO2",
+        "CO",
+        "NO",
+        "NO2",
+        "PM2.5",
+        "PM10",
+        "NOx",
+        "O3",
+        "TOL",
+        "BEN",
+        "EBE",
+        "TCH",
+        "CH4",
+        "NHMC",
+    ];
+
     var chart = null;
     var chartData = null;
     var initialData = [];
@@ -13,6 +32,8 @@
     var currentStep = null;
     var interval = null;
     var playbutton = null;
+    var historykeys = null;
+    var historydata = null;
 
     var resizeLines = function removeLines() {
         d3.select(chart.container).selectAll(".history-current-value line")
@@ -154,19 +175,78 @@
         }
     };
 
+    var addValue = function addValue(key, dateObserved, entity) {
+        var value = Number(entity[key]);
+        if (!Number.isFinite(value)) {
+            return;
+        }
+
+        var entry;
+        if (!(dateObserved in historydata.keys[key])) {
+            entry = {
+                x: dateObserved,
+                y: 0,
+                data: []
+            };
+            var keyindex = historykeys.indexOf(key);
+            historydata.keys[key][dateObserved] = entry;
+            historydata.chartData[keyindex].values.unshift(entry);
+        } else {
+            entry = historydata.keys[key][dateObserved];
+        }
+
+        entry.data.push(entity);
+        entry.y = entry.y + (value - entry.y) / (entry.data.length);
+    };
+
     var normalizeData = function normalizeData(data) {
         if (typeof data == "string") {
             data = JSON.parse(data);
-        } else {
-            data.series.forEach((serie) => {
-                serie.values = Array.prototype.slice.call(serie.values, 0);
-                serie.area = true;
-            });
         }
 
-        paint(data.series, data.min, data.max);
+        if (!Array.isArray(data)) {
+            data = [data];
+        }
+
+        data.forEach((element) => {
+            var dateObserved = new Date(element.validity.from).getTime();
+            historykeys.forEach((key) => {
+                addValue(key, dateObserved, element);
+            });
+        });
+
+        historydata.chartData.forEach((serie) => {serie.values.sort((a, b) => {return a.x - b.x});});
+        paint(
+            historydata.chartData.filter((serie) => {return serie.values.length > 0;}),
+            data.min,
+            data.max
+        );
     };
 
+
+    var updateHistoryKeys = function updateHistoryKeys() {
+        historykeys = MashupPlatform.prefs.get('keys').trim();
+        if (historykeys === "") {
+            historykeys = DEFAULT_HISTROY_KEYS;
+        } else {
+            historykeys = historykeys.split(new RegExp(',\\s*'));
+        }
+
+        // Init history structures
+        historydata = {
+            keys: {},
+            chartData: []
+        };
+        historykeys.forEach((key) => {
+            historydata.keys[key] = {};
+            historydata.chartData.push({
+                key: key,
+                values: []
+            });
+        });
+
+        initChart();
+    };
 
     var config = function config() {
         // When data is received paint it
@@ -178,7 +258,8 @@
         // Init moment locale
         moment.locale(MashupPlatform.context.get('language'));
 
-        initChart();
+        MashupPlatform.prefs.registerCallback(updateHistoryKeys);
+        updateHistoryKeys();
     };
 
     var handleResize = function handleResize(new_values) {
