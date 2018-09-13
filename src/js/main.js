@@ -175,24 +175,24 @@
         }
     };
 
-    var addValue = function addValue(key, dateObserved, entity) {
+    var addValue = function addValue(key, valid_from, entity) {
         var value = Number(entity[key]);
         if (!Number.isFinite(value)) {
             return;
         }
 
         var entry;
-        if (!(dateObserved in historydata.keys[key])) {
+        if (!(valid_from in historydata.keys[key])) {
             entry = {
-                x: dateObserved,
+                x: valid_from,
                 y: 0,
                 data: []
             };
             var keyindex = historykeys.indexOf(key);
-            historydata.keys[key][dateObserved] = entry;
+            historydata.keys[key][valid_from] = entry;
             historydata.chartData[keyindex].values.unshift(entry);
         } else {
-            entry = historydata.keys[key][dateObserved];
+            entry = historydata.keys[key][valid_from];
         }
 
         entry.data.push(entity);
@@ -209,9 +209,9 @@
         }
 
         data.forEach((element) => {
-            var dateObserved = new Date(element.validity.from).getTime();
+            var valid_from = new Date(element.validity.from).getTime();
             historykeys.forEach((key) => {
-                addValue(key, dateObserved, element);
+                addValue(key, valid_from, element);
             });
         });
 
